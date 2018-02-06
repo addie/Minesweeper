@@ -54,13 +54,16 @@ class Minesweeper:
         mine_positions = set()
         i = 0
         while i < self.mines:  # potentially endless loop
-            x_axis = randint(0, len(self.board) - 1)
-            y_axis = randint(0, len(self.board[0]) - 1)
-            position = (x_axis, y_axis)
+            position = self.get_random_cell()
             if position not in mine_positions:
                 mine_positions.add(position)
-                self.board[x_axis][y_axis] = MINE
+                self.board[position.r][position.c] = MINE
                 i += 1
+
+    def get_random_cell(self):
+        x = randint(0, len(self.board) - 1)
+        y = randint(0, len(self.board[0]) - 1)
+        return Cell(x, y)
 
     def visit_cell(self, cell):
         # if self.board[row][col] != HIDDEN:
@@ -101,20 +104,37 @@ class Minesweeper:
         else:
             return CELL_ALREADY_SELECTED
 
+    def move_mine(self, cell):
+        ran = self.get_random_cell()
+        while self.board[ran.r][ran.c] == MINE:
+            ran = self.get_random_cell()
+        self.board[ran.r][ran.c] = MINE
+        self.board[cell.r][cell.c] = HIDDEN
+
+    def get_input(self):
+        r_in = input('Enter a row: ')
+        while not r_in.isdigit() or not (0 < int(r_in) <= self.rows):
+            print("Invalid row. Try again.")
+            r_in = input('Enter a row: ')
+        c_in = input('Enter a column: ')
+        while not c_in.isdigit() or not (0 < int(c_in) <= self.cols):
+            print("Invalid column. Try again.")
+            c_in = input('Enter a column: ')
+        r = int(r_in) - 1  # sub 1 because grid is 0 indexed
+        c = int(c_in) - 1
+        cell = Cell(r, c)
+        if self.board[r][c] == MINE:
+            self.move_mine(cell)
+        return cell
+
     def play(self):
+        initial_move = True
         while self.cells_left:
             self.print_board(True)
-            r_in = input('Enter a row: ')
-            while not r_in.isdigit() or not (0 < int(r_in) <= self.rows):
-                print("Invalid row. Try again.")
-                r_in = input('Enter a row: ')
-            c_in = input('Enter a column: ')
-            while not c_in.isdigit() or not (0 < int(c_in) <= self.cols):
-                print("Invalid column. Try again.")
-                c_in = input('Enter a column: ')
-            r = int(r_in) - 1  # sub 1 because grid is 0 indexed
-            c = int(c_in) - 1
-            cell = Cell(r, c)
+            cell = self.get_input()
+            if initial_move:
+                initial_move = False
+                self.move_mine(cell)
             res = self.check_hit(cell)
             if res == CELL_ALREADY_SELECTED:
                 print('You\'ve already selected this cell. Try again.')
