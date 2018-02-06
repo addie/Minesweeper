@@ -16,38 +16,41 @@ Cell = collections.namedtuple('cell', ('r', 'c'))
 
 class Minesweeper:
 
-    def __init__(self, rows, cols, mines):
-        self.cells_left = -1
-        self.rows = rows
-        self.cols = cols
-        self.mines = mines
-        self.board = self.create_board()
-        self.add_mines()
+    def __init__(self):
+        self.rows = None
+        self.cols = None
+        self.mines = None
+        self.board = None
 
     def create_board(self):
-        self.cells_left = self.rows * self.cols
-        return [[HIDDEN for _ in range(self.cols)] for _ in range(self.rows)]
+        self.board = [[HIDDEN for _ in range(self.cols)] for _ in range(self.rows)]
 
     def print_board(self, hidden):
         print()
-        print(' ', end=' ')
+        print(' ', end='  ')
         for i in range(len(self.board[0])):
-            print(i+1, end=' ')
+            if i < 9:
+                print(i+1, end='  ')
+            else:
+                print(i+1, end=' ')
         print()
         for i in range(len(self.board)):
-            print(i+1, end=' ')
+            if i < 9:
+                print(i+1, end='  ')
+            else:
+                print(i+1, end=' ')
             for j in range(len(self.board[0])):
                 if self.board[i][j] == HIDDEN:
-                    print('H', end=' ')
+                    print('H', end='  ')
                 elif self.board[i][j] == MINE:
                     if hidden:
-                        print('H', end=' ')
+                        print('H', end='  ')
                     else:
-                        print('*', end=' ')
+                        print('*', end='  ')
                 elif self.board[i][j] == VISITED:
-                    print('.', end=' ')
+                    print('.', end='  ')
                 else:
-                    print(self.board[i][j], end=' ')
+                    print(self.board[i][j], end='  ')
             print()
 
     def add_mines(self):
@@ -66,9 +69,6 @@ class Minesweeper:
         return Cell(x, y)
 
     def visit_cell(self, cell):
-        # if self.board[row][col] != HIDDEN:
-        #     return
-
         def get_adjacent(r, c):
             for i in range(-1, 2):
                 for j in range(-1, 2):
@@ -92,7 +92,7 @@ class Minesweeper:
             else:
                 self.board[r][c] = VISITED
                 for nei in get_adjacent(r, c):
-                    if self.board[nei[0]][nei[1]] in (HIDDEN, VISITED) and nei not in visited:
+                    if self.board[nei[0]][nei[1]] == HIDDEN and nei not in visited:
                         stack.append(nei)
                         visited.add(nei)
 
@@ -123,16 +123,50 @@ class Minesweeper:
         r = int(r_in) - 1  # sub 1 because grid is 0 indexed
         c = int(c_in) - 1
         cell = Cell(r, c)
-        if self.board[r][c] == MINE:
-            self.move_mine(cell)
         return cell
 
+    def set_up(self):
+        print('Welcome to Minesweeper')
+        level = input('(B)eginner, (I)ntermediate, (E)xpert, or (C)ustom? ')
+        while level.lower() not in ('b', 'i', 'e', 'c'):
+            level = input('(B)eginner, (I)ntermediate, (E)xpert, or (C)ustom? ')
+        level = level.lower()[0]
+        if level == 'b':
+            self.mines = 10
+            self.rows = self.cols = 9
+        elif level == 'i':
+            self.mines = 40
+            self.rows = self.cols = 15
+        elif level == 'e':
+            self.mines = 99
+            self.rows = self.cols = 20
+        elif level == 'c':
+            rows = input('Number of rows? ')
+            while not rows.isdigit() or not (3 <= int(rows) <= 20):
+                print('Invalid row number')
+                rows = input('Number of rows? ')
+            cols = input('Number of columns? ')
+            while not cols.isdigit() or not (3 <= int(cols) <= 20):
+                print('Invalid column number')
+                cols = input('Number of columns? ')
+            mines = input('Number of mines? ')
+            while not mines.isdigit() or not (1 <= int(mines) <= 99):
+                print('Invalid number of mines')
+                mines = input('Number of mines? ')
+
+            self.rows = int(rows)
+            self.cols = int(cols)
+            self.mines = int(mines)
+
     def play(self):
+        self.set_up()
+        self.create_board()
+        self.add_mines()
         initial_move = True
-        while self.cells_left:
+        while True:
             self.print_board(True)
             cell = self.get_input()
-            if initial_move:
+            if initial_move and self.board[cell.r][cell.c] == MINE:
                 initial_move = False
                 self.move_mine(cell)
             res = self.check_hit(cell)
@@ -146,8 +180,8 @@ class Minesweeper:
 
 
 if __name__ == '__main__':
-    cols = int(sys.argv[1])
-    rows = int(sys.argv[2])
-    mines = int(sys.argv[3])
-    game = Minesweeper(rows, cols, mines)
+    # cols = int(sys.argv[1])
+    # rows = int(sys.argv[2])
+    # mines = int(sys.argv[3])
+    game = Minesweeper()
     game.play()
