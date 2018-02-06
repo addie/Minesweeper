@@ -1,6 +1,19 @@
 import collections
-import sys
 from random import randint
+from colorama import init, Fore, Style
+
+
+# Colors
+Colors = {
+    1: Fore.RED,
+    2: Fore.BLUE,
+    3: Fore.BLACK,
+    4: Fore.GREEN,
+    5: Fore.YELLOW,
+    6: Fore.MAGENTA,
+    7: Fore.CYAN,
+    8: Fore.BLACK
+}
 
 # Flags
 HIDDEN = -1
@@ -21,6 +34,7 @@ class Minesweeper:
         self.cols = None
         self.mines = None
         self.board = None
+        init()
 
     def create_board(self):
         self.board = [[HIDDEN for _ in range(self.cols)] for _ in range(self.rows)]
@@ -50,7 +64,8 @@ class Minesweeper:
                 elif self.board[i][j] == VISITED:
                     print('.', end='  ')
                 else:
-                    print(self.board[i][j], end='  ')
+                    c = self.board[i][j]
+                    print(Colors[c] + str(c) + Style.RESET_ALL, end='  ')
             print()
 
     def add_mines(self):
